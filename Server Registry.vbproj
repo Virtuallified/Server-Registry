@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Server_Registry</RootNamespace>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <ApplicationIcon>terminal.ico</ApplicationIcon>
+    <Authors>Subhradip Das</Authors>
+    <Company>Virtuallified Co.</Company>
+    <Copyright>Copyright © 2020 Virtuallified Co. All Rights Reserved</Copyright>
+    <Description>Create, Modify, Delete Windows Registry with Server Details</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+  </ItemGroup>
+
+</Project>
