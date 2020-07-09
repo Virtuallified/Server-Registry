@@ -1,3 +1,7 @@
+'---------------------------------------------------------------------------------------------------------
+'  Console application to store/retrieve/delete registry key with user defined server details
+'---------------------------------------------------------------------------------------------------------
+
 Imports System.Net.Dns
 Imports Microsoft.Win32
 
@@ -15,6 +19,12 @@ Module Program
     Const userRoot As String = "HKEY_CURRENT_USER"
     Const subkey As String = "Environment\ServerConfig"
     Const keyName As String = userRoot & "\" & subkey
+    Private exportPath As String = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop) & "\ServerREG.reg"
+    Private proc As Process = New Process()
+
+    ' Encryption
+    Const EncryptionKey As String = "SECRET"
+    Private wrapper As New _3DES(EncryptionKey)
 
 #End Region
 
@@ -23,9 +33,9 @@ Module Program
 
 Menu:
         Console.WriteLine("|------------------------------|" + vbCrLf + "|--- Welcome to IP Registry ---|" + vbCrLf + "|------------------------------|" + vbCrLf)
-        Console.WriteLine("Press 1 : View current hostname and ipv4 address" + vbCrLf + "Press 2 : Set current local ip to the registry for application's use" + vbCrLf + "Press 3 : Set server info to the registry for application's use" + vbCrLf + "Press 4 : View current server details settings saved in registry" + vbCrLf + "Press 5 : Delete current server details saved in registry" + vbCrLf + "Press 6 : For exit")
+        Console.WriteLine("Press [1] : View current hostname and ipv4 address" + vbCrLf + "Press [2] : Set current local ip to the registry for application's use" + vbCrLf + "Press [3] : Set server details to the registry for application's use" + vbCrLf + "Press [4] : View current server details settings saved in registry" + vbCrLf + "Press [5] : Delete current server details saved in registry" + vbCrLf + "Press [6] : Export server details registry to .REG file" + vbCrLf + "Press [7] : For exit")
 
-        Do Until Ops = 6
+        Do Until Ops = 7
             Try
                 Ops = Console.ReadLine
                 Select Case Ops
@@ -41,6 +51,8 @@ Menu:
                         GoTo Option5
                     Case "6"
                         GoTo Option6
+                    Case "7"
+                        GoTo Option7
                 End Select
             Catch ex As Exception
                 Console.WriteLine("Wrong Input!")
@@ -69,7 +81,7 @@ Option1:
 Option2:
         Try
             Registry.SetValue(keyName, "IP", GetHostEntry(hostName).AddressList(1).ToString())
-            Console.WriteLine("Registry created successfully!")
+            Console.WriteLine("IP updated successfully!")
             Console.ReadLine()
             Console.Clear()
             GoTo Menu
@@ -91,7 +103,7 @@ Option3:
             User = Console.ReadLine()
             Registry.SetValue(keyName, "USER", User)
             Console.WriteLine("Enter a DB Password:")
-            Pass = Console.ReadLine()
+            Pass = wrapper.EncryptData(Console.ReadLine())
             Registry.SetValue(keyName, "PASS", Pass)
             Console.WriteLine("Registry created successfully!")
             'Console.WriteLine(Registry.GetValue(keyName, "IP", Nothing))
@@ -131,6 +143,27 @@ Option5:
             Console.WriteLine("Something Wrong!, Contact Developer.")
         End Try
 Option6:
+        Try
+            proc.StartInfo.FileName = "reg.exe"
+            proc.StartInfo.UseShellExecute = False
+            proc.StartInfo.RedirectStandardOutput = True
+            proc.StartInfo.RedirectStandardError = True
+            proc.StartInfo.CreateNoWindow = True
+            proc.StartInfo.Arguments = "export """ & keyName & """ """ + exportPath & """ /y"
+            proc.Start()
+            proc.StandardOutput.ReadToEnd()
+            proc.StandardError.ReadToEnd()
+            proc.WaitForExit()
+            Console.WriteLine("Registry exported successfully!")
+            Console.ReadLine()
+            Console.Clear()
+            GoTo Menu
+        Catch ex As Exception
+            Console.WriteLine("Something Wrong!, Contact Developer.")
+        Finally
+            proc.Dispose()
+        End Try
+Option7:
         Try
             Console.WriteLine("Press enter to exit..")
             Console.ReadLine()
